@@ -12,11 +12,12 @@ lab assignments, keep a work log, and upload code for our semester project.
 ---
 
 ## Steps I Completed
-1. [First thing you did]
-2. [Second thing you did]
-3. [etc.]
+1. First, I installed VS Code on my laptop and created a Github account
+2. I then opened the Github repository provided on the Lab 1 PDF and cloned it to my device
+3. I created two Markdown files, and looked over Markdown syntax using the links provided on the Lab 1 PDF
+4. After troubleshooting syncing and committing changes, I finished
 
 ---
 
 ## Reflection
-*(You'll fill this in during Part 3)*
+*This assigment took around an hour to complete. I'd say the level of difficulty this assignment had was medium because the instructions were a bit unclear at some points, and the TA had me do a couple of things out of order like cloning the repo first, not creating the .md files. So the ordering was the confusing part to be honest. I feel around half comfortable with the course content, and I don't have any feedback at the moment to report!*
