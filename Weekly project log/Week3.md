@@ -16,6 +16,7 @@
 - Drafted and refined stakeholder needfinding questions; reworked spec-style questions into open-ended/story questions per Lecture 4
 
 **Group:**
+- Meeting minutes: Everyone attended on Zoom. For the first 17 minutes we conducted the interview. For another 20 min after, we discussed amongst ourselves. 
 - Conducted ~17 min needfinding interview with stakeholder (Luis & Nary, baby Ariana); took notes and recorded
 - Updated team contract (absence approval by group, text/in-person communication, 2-of-3 rejection clause)
 
