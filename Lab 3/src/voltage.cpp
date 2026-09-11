@@ -1,25 +1,29 @@
-#include <Arduino.h>
+/* #include <Arduino.h>
 
 // function prototype
-int voltage(float analogvalue);
+float voltage(float analogvalue);
 
 // Put your potentiometer pin assignment here
-const int sensorPin = 0;
+const int sensorPin = A0;
 
 void setup() {
     Serial.begin(115200);
 }
 
 void loop() {
-    // This is the line for printing in the serial
-    Serial.println(voltage(analogRead(sensorPin)));
-    delay(50); 
+    // zxb141: store the analog value read from the potentiometer pin into sensorValue
+    int sensorValue = analogRead(sensorPin);
+    Serial.println(voltage(sensorValue));
+    // zxb141: Printing the voltage value every 200 milliseconds
+    delay(200); 
 }
 
 // function to calculate output voltage
-int voltage(float analogvalue){
-    int voltage;
-    //analogRead(sensorPin); gives us 0-4095 values
-    //use the formula (Analog value*Reference voltage) / (Sensor Resolution) to calculate the output voltage
-    return voltage;
+float voltage(float analogvalue){
+    float sensorVoltage;
+    // zxb141: The formula converts the analog value to voltage based on a 12-bit ADC resolution (0-4095) and a reference voltage of 3.3V
+    sensorVoltage = (analogvalue * 3.3) / 4095;
+    return sensorVoltage;
 }
+
+*/
