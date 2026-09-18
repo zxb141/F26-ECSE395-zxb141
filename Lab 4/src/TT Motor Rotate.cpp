@@ -1,3 +1,4 @@
+/*
 // zxb141: This code is for controlling a TT motor using an ESP32 microcontroller. It sets up the motor pins, configures them as outputs, and controls the motor's rotation in a sequence of clockwise, stop, counterclockwise, and stop again.
 
 #include <Arduino.h>
@@ -54,3 +55,5 @@ void loop() {
 
   delay(2000); // zxb141: motor B stops for 2 seconds
 }
+
+*/

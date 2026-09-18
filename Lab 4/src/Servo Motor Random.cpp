@@ -1,38 +1,34 @@
-/* #include <ESP32Servo.h>
-// Don't forget to include the library!!
-// From PlatfromIO library, search for ESP32 servo and add it to the project
+#include <ESP32Servo.h>
 
-// Define the servo and the pin it is connected to, what is your servo pin?
+// zxb141: Define the servo and the pin it is connected to, what is your servo pin?
 Servo myServo;
-const int servoPin = 0;
+const int servoPin = A0; // zxb141: define the pin for the servo motor
 
-// variable for random angle
+// zxb141: variable for random angle
 int randomAngle;
 
-// Variable for pulse width
+// zxb141: Variable for pulse width
 int pulseWidth;
 
-// Define the minimum and maximum pulse widths for the servo
+// zxb141: Define the minimum and maximum pulse widths for the servo
 const int minPulseWidth = 500; // 0.5 ms
 const int maxPulseWidth = 2500; // 2.5 ms
 
 void setup() {
-  // Attach the servo to the specified pin and set its pulse width range
+  // zxb141: Attach the servo to the specified pin and set its pulse width range
   myServo.attach(servoPin, minPulseWidth, maxPulseWidth);
 
-  // Set the PWM frequency for the servo
+  // zxb141: Set the PWM frequency for the servo
   myServo.setPeriodHertz(50); // Standard 50Hz servo
 }
 
 void loop() {
     //  --- SECTION 1: Make a Random Angle Between 0 to 180 ---
-    // randomAngle = ?; // random(A,B); returns a random value between A and B
+    randomAngle = random(0, 181); // random(0, 181); returns a random value between 0 and 180
 
     // ---SECTION 2: Map Pulse Width with Angle
-    // pulseWidth = map(?, ?, ?, ?, ?, ?) // from Servo Motor.cpp, what did you learn from using map function?
+    pulseWidth = map(randomAngle, 0, 180, minPulseWidth, maxPulseWidth); // from Servo Motor.cpp, what did you learn from using map function?
     myServo.writeMicroseconds(pulseWidth); // writing pulse width to servo
 
-    delay(1000); // change delay to your own preference
+    delay(random(500, 2000)); // delay for a random time between 500ms to 2000ms
 }
-
-*/
