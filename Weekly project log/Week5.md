@@ -14,4 +14,4 @@
 - Presented our 3 designs with the stakeholders
 - Took notes on their feedback (Luis gave us lots of great/specific feedback as an EE person)
 - Received the exact amazon order link of the baby gate they ordered
-Note: Aedan was not present due to illness
+- Note: Aedan was not present due to illness
