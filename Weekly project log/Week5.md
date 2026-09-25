@@ -1,7 +1,7 @@
 # Week 5 Project Log
 **Team:** Zachary Blue, Aedan Reagans, Lucas Benson
 
-## Monday, September 21st, 2026
+## Monday, September 21, 2026
 **Individual:**
 - Brainstormed 10 ideas looking at the technical and functional specs 
 - Led the synthesization of the 30 ideas our team had into 3 ideas with common features
@@ -15,3 +15,7 @@
 - Took notes on their feedback (Luis gave us lots of great/specific feedback as an EE person)
 - Received the exact amazon order link of the baby gate they ordered
 - Note: Aedan was not present due to illness
+
+## Friday, September 26, 2026
+**Individual:**
+- Completed Lab 5: designed and built a distance-based warning system (ultrasonic + buzzer + traffic light) as an early prototype of the project concept
