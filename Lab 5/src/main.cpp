@@ -61,8 +61,8 @@ void loop() {
         return;
     }
 
-    // zxb141: If the distance is greater than 50 cm, turn on the green LED and turn off the yellow and red LEDs
-    if (distance > 50) {
+    // zxb141: If the distance is greater than 150 cm, turn on the green LED and turn off the yellow and red LEDs
+    if (distance > 150) {
         digitalWrite(GREEN_LED_PIN, HIGH);
         digitalWrite(YELLOW_LED_PIN, LOW);
         digitalWrite(RED_LED_PIN, LOW);
