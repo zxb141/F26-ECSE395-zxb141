@@ -9,7 +9,7 @@ This repository is for my weekly log. The purpose of this repository is to stay 
 | [Week 3](Week3.md)  | Conducted stakeholder needfinding interview, built affinity board, completed Lab 3 sensors, and wrote my guewst lecture reflection.                                                                            |
 | [Week 4](Week4.md)  |   Needfinding presentation, brainstorming milestone, concept prep for stakeholder meeting, and Lab 4 actuators.                                                                          |
 | [Week 5](Week5.md)  | Brainstormed and narrowed 30 ideas to 3 concepts, presented them to stakeholders, and Lab 5 integration system on                                                                            |
-| Week 6  | ...and so on                                                                            |
+| [Week 6](Week6.md) | Rebuilt and characterized the ultrasonic sensor circuit (measured horizontal and vertical detection angles), gathered stairwell reference images from the stakeholder meeting, and as a team decided to build two competing prototypes, one ultrasonic and one PIR                                                                           |
 | Week 7  | ...and so on                                                                            |
 | Week 8  | ...and so on                                                                            |
 | Week 9  | ...and so on                                                                            |
