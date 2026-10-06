@@ -1,4 +1,4 @@
-# Week 6 Project Log
+# Week 7 Project Log
 **Team:** Zachary Blue, Aedan Reagans, Lucas Benson
 
 ## Monday, October 5th, 2026
