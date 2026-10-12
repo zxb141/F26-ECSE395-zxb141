@@ -13,3 +13,15 @@
 - Finalized the design direction: box clamped to the gate rails with slotted plates, PIR angled down to detect Ariana, ultrasonic angled up to detect adults walking past and suppress false alarms, vibration sensor as backup
 - Decided on a simple on/off button on the box instead of a toggle switch
 - Confirmed power plan: rechargeable 9 V with a regulator, Wi-Fi hardware included but notification software is a stretch goal
+
+## Friday, October 9th
+**Individual:**
+- Re-pieced together the ultrasonic sensor prototype breadboard design made by me
+- Developed code for the ultrasonic and PIR motion module for one breadboard design, according to our logic 
+- Tested the PIR and ultrasonic sensor on the same board
+
+
+**Group:**
+- Lucas sent me his github code for the PIR motion module
+- Constructed a design of what the box (device) will look like out of paper, showing where each sensor would go
+- Discussed the design we will pursue as it was a bit unclear in our submission on Canvas

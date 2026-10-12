@@ -57,12 +57,12 @@ void loop() {
     Serial.println(" cm away");
 
     // zxb141: Implement a glitch filter to ignore distances greater than 400 cm and less than 2 cm, as they are likely to be erroneous readings
-    if (distance > 400 || distance < 2) {
+    if (distance < 2) {
         return;
     }
 
     // zxb141: If the distance is greater than 150 cm, turn on the green LED and turn off the yellow and red LEDs
-    if (distance > 150) {
+    if (distance > 150 || (distance < 1213 && distance > 1211)) {
         digitalWrite(GREEN_LED_PIN, HIGH);
         digitalWrite(YELLOW_LED_PIN, LOW);
         digitalWrite(RED_LED_PIN, LOW);
