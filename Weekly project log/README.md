@@ -10,7 +10,7 @@ This repository is for my weekly log. The purpose of this repository is to stay 
 | [Week 4](Week4.md)  |   Needfinding presentation, brainstorming milestone, concept prep for stakeholder meeting, and Lab 4 actuators.                                                                          |
 | [Week 5](Week5.md)  | Brainstormed and narrowed 30 ideas to 3 concepts, presented them to stakeholders, and Lab 5 integration system on                                                                            |
 | [Week 6](Week6.md) | Rebuilt and characterized the ultrasonic sensor circuit (measured horizontal and vertical detection angles), gathered stairwell reference images from the stakeholder meeting, and as a team decided to build two competing prototypes, one ultrasonic and one PIR                                                                           |
-| Week 7  | ...and so on                                                                            |
+| [Week 7](Week7.md)  | Wrote my System Architecture sections (D, E, G), finalized the rail-mounted PIR + upward ultrasonic design with the team, then got the PIR and ultrasonic running together on one breadboard and built a paper mock-up of the box                                                                          |
 | Week 8  | ...and so on                                                                            |
 | Week 9  | ...and so on                                                                            |
 | Week 10  | ...and so on                                                                            |
