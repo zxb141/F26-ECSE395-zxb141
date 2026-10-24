@@ -1,4 +1,4 @@
-# Week 8 Project Log
+# Week 9 Project Log
 **Team:** Zachary Blue, Aedan Reagans, Lucas Benson
 
 ## Monday, October 19, 2026
