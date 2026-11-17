@@ -1,139 +1,257 @@
 #include <Arduino.h>
 
+// Adafruit Feather ESP32 V2
+constexpr uint8_t trigPin = 27;
+constexpr uint8_t echoPin = 33;
+constexpr uint8_t greenLED = 15;
+constexpr uint8_t yellowLED = 14;
+constexpr uint8_t redLED = 32;
+constexpr uint8_t buzzer = A5;
+constexpr uint8_t pirPin = A4;
+constexpr uint8_t vibrationPin = 13;
 
-// zxb141: Function prototypes
-float readDistance();
-float middleOf(float a, float b, float c);
+constexpr uint8_t PIR_ACTIVE_LEVEL = HIGH;
+constexpr uint8_t VIBRATION_ACTIVE_LEVEL = HIGH;
+constexpr uint8_t BUZZER_CHANNEL = 0;
 
+constexpr uint32_t PIR_WARMUP_MS = 30000;
+constexpr uint32_t PIR_CONFIRM_MS = 350;
+constexpr uint32_t PIR_HOLD_MS = 5000;
+constexpr uint32_t PING_MS = 100;
+constexpr uint32_t ECHO_TIMEOUT_US = 12000;
+constexpr uint32_t ADULT_HOLD_MS = 1500;
+constexpr uint32_t VIBRATION_ALERT_MS = 2000;
+constexpr uint32_t VIBRATION_QUIET_MS = 500;
 
-// zxb141: Define pins for ultrasonic sensor
-const int TRIG_PIN = 27;
-const int ECHO_PIN = 33; 
+uint32_t bootTime = 0;
+float distanceCm = -1.0f;
 
-// zxb141: Define pins for LED traffic light
-const int GREEN_LED_PIN = A5;
-const int YELLOW_LED_PIN = 14; 
-const int RED_LED_PIN = 32;
+volatile bool vibrationPending = false;
+portMUX_TYPE vibrationMux = portMUX_INITIALIZER_UNLOCKED;
 
-// zxb141: Define pin for buzzer
-const int BUZZER_PIN = 15;
+void IRAM_ATTR onVibration() {
+  portENTER_CRITICAL_ISR(&vibrationMux);
+  vibrationPending = true;
+  portEXIT_CRITICAL_ISR(&vibrationMux);
+}
 
+bool takeVibration() {
+  portENTER_CRITICAL(&vibrationMux);
+  const bool detected = vibrationPending;
+  vibrationPending = false;
+  portEXIT_CRITICAL(&vibrationMux);
+  return detected;
+}
+
+bool updateAdultZone(uint32_t now) {
+  static bool lastEcho = false;
+  static bool previousEcho = false;
+  static bool adultZone = false;
+  static uint32_t lastConfirmed = 0;
+  static uint32_t lastPing = 0;
+
+  if (now - lastPing >= PING_MS) {
+    lastPing = now;
+
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+
+    const unsigned long echoUs =
+        pulseIn(echoPin, HIGH, ECHO_TIMEOUT_US);
+
+    distanceCm = echoUs * 0.01715f;
+    if (distanceCm < 2.0f) distanceCm = -1.0f;
+
+    // Two valid echoes in three pings confirm adult presence.
+    const bool echoSeen = distanceCm > 0;
+
+    if (echoSeen && (adultZone || lastEcho || previousEcho)) {
+      adultZone = true;
+      lastConfirmed = millis();
+    }
+
+    previousEcho = lastEcho;
+    lastEcho = echoSeen;
+  }
+
+  if (adultZone && millis() - lastConfirmed >= ADULT_HOLD_MS) {
+    adultZone = false;
+  }
+
+  return adultZone;
+}
+
+void updateOutputs(uint32_t now, bool ready, bool alarmOn) {
+  static bool wasAlarmOn = false;
+  static bool buzzerOn = false;
+  static uint32_t alarmStarted = 0;
+
+  if (alarmOn && !wasAlarmOn) {
+    alarmStarted = now;
+  }
+
+  wasAlarmOn = alarmOn;
+
+  const bool beep =
+      alarmOn && ((now - alarmStarted) / 200) % 2 == 0;
+
+  digitalWrite(greenLED, ready && !alarmOn);
+  digitalWrite(redLED, beep);
+
+  if (beep != buzzerOn) {
+    ledcWrite(BUZZER_CHANNEL, beep ? 512 : 0);
+    buzzerOn = beep;
+  }
+}
 
 void setup() {
-    
-    // zxb141: Initialize serial communication at 115200 baud rate
-    Serial.begin(115200);
-    
-    // zxb141: Set pin modes for ultrasonic sensor and LEDs
-    pinMode(TRIG_PIN, OUTPUT); 
-    pinMode(ECHO_PIN, INPUT); 
+  Serial.begin(115200);
 
-    // zxb141: Set pin modes for LED traffic light
-    pinMode(GREEN_LED_PIN, OUTPUT);
-    pinMode(YELLOW_LED_PIN, OUTPUT); 
-    pinMode(RED_LED_PIN, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(pirPin, INPUT);
+  pinMode(vibrationPin, INPUT);
 
-     // zxb141: Set the buzzer pin as an output
-    pinMode(BUZZER_PIN, OUTPUT);
+  for (const uint8_t pin :
+       {trigPin, greenLED, yellowLED, redLED, buzzer}) {
+    pinMode(pin, OUTPUT);
+    digitalWrite(pin, LOW);
+  }
 
-}  
+  // Initialize the buzzer's PWM once.
+  ledcSetup(BUZZER_CHANNEL, 1800, 10);
+  ledcAttachPin(buzzer, BUZZER_CHANNEL);
+  ledcWrite(BUZZER_CHANNEL, 0);
 
+  bootTime = millis();
 
+  attachInterrupt(
+      digitalPinToInterrupt(vibrationPin),
+      onVibration,
+      VIBRATION_ACTIVE_LEVEL == HIGH ? RISING : FALLING
+  );
+
+  Serial.println("Starting. PIR warmup takes 30 seconds.");
+}
 
 void loop() {
-    
-    // zxb141: Read distance from the ultrasonic sensor three times to get a more stable reading
-    float d1 = readDistance();
-    delay(10);
-    float d2 = readDistance();
-    delay(10);
-    float d3 = readDistance();
+  static bool pirReady = false;
+  static uint32_t pirHighSince = 0;
+  static bool motionAlarm = false;
+  static uint32_t lastMotion = 0;
 
-    float distance = middleOf(d1, d2, d3); // zxb141: use the median to reject glitches
+  static bool vibrationAlarm = false;
+  static bool vibrationArmed = true;
+  static uint32_t vibrationStarted = 0;
+  static uint32_t lastVibration = 0;
 
-    // zxb141: Print the distance to the serial monitor
-    Serial.print("Distance: ");
-    Serial.print(distance);
-    Serial.println(" cm away");
+  static bool contactSinceLog = false;
+  static uint32_t lastLog = 0;
 
-    // zxb141: Implement a glitch filter to ignore distances greater than 400 cm and less than 2 cm, as they are likely to be erroneous readings
-    if (distance < 2) {
-        return;
+  const bool adultZone = updateAdultZone(millis());
+  const uint32_t now = millis();
+
+  pirReady |= now - bootTime >= PIR_WARMUP_MS;
+
+  const int pir = digitalRead(pirPin);
+  const bool pirActive = pir == PIR_ACTIVE_LEVEL;
+
+  if (!pirReady || !pirActive || adultZone) {
+    pirHighSince = now;
+  }
+
+  if (!pirReady || adultZone) {
+    motionAlarm = false;
+  } else if (
+      pirActive &&
+      (motionAlarm || now - pirHighSince >= PIR_CONFIRM_MS)
+  ) {
+    motionAlarm = true;
+    lastMotion = now;
+  } else if (
+      motionAlarm &&
+      now - lastMotion >= PIR_HOLD_MS
+  ) {
+    motionAlarm = false;
+  }
+
+  const int vibration = digitalRead(vibrationPin);
+  const bool vibrationPulse = takeVibration();
+
+  const bool vibrationActive =
+      vibrationPulse || vibration == VIBRATION_ACTIVE_LEVEL;
+
+  contactSinceLog |= vibrationActive;
+
+  if (vibrationAlarm &&
+      now - vibrationStarted >= VIBRATION_ALERT_MS) {
+    vibrationAlarm = false;
+  }
+
+  if (vibrationActive) {
+    lastVibration = now;
+
+    if (vibrationArmed && !adultZone) {
+      vibrationAlarm = true;
+      vibrationStarted = now;
     }
 
-    // zxb141: If the distance is greater than 150 cm, turn on the green LED and turn off the yellow and red LEDs
-    if (distance > 150 || (distance < 1213 && distance > 1211)) {
-        digitalWrite(GREEN_LED_PIN, HIGH);
-        digitalWrite(YELLOW_LED_PIN, LOW);
-        digitalWrite(RED_LED_PIN, LOW);
-        
-        digitalWrite(BUZZER_PIN, LOW);
-    }
-    
-    // zxb141: If the distance is between 20 cm and 50 cm, turn on the yellow LED and play a slow low-frequency tone on the buzzer
-    else if (distance > 20) {
-        digitalWrite(GREEN_LED_PIN, LOW);
-        digitalWrite(YELLOW_LED_PIN, HIGH);
-        digitalWrite(RED_LED_PIN, LOW);
-        
-        tone(BUZZER_PIN, 100);
-        delay(300);
-        noTone(BUZZER_PIN);
-    }
+    vibrationArmed = false;
+  }
 
-    // zxb141: If the distance is less than or equal to 20 cm, turn on the red LED and play a fast high-frequency tone on the buzzer
-    else {
-        digitalWrite(GREEN_LED_PIN, LOW);
-        digitalWrite(YELLOW_LED_PIN, LOW);
-        digitalWrite(RED_LED_PIN, HIGH);
-        
-        tone(BUZZER_PIN, 1000);
-        delay(100);
-        noTone(BUZZER_PIN);
-    }
+  if (adultZone) {
+    vibrationAlarm = false;
+  }
 
-    delay(100); // zxb141: Wait for 100 milliseconds before the next measurement
+  const bool alarmOn =
+      !adultZone && (motionAlarm || vibrationAlarm);
 
-}
+  if (alarmOn) {
+    // Prevent the buzzer's vibration from retriggering the sensor.
+    vibrationArmed = false;
+    lastVibration = now;
+  } else if (
+      !vibrationActive &&
+      now - lastVibration >= VIBRATION_QUIET_MS
+  ) {
+    vibrationArmed = true;
+  }
 
+  updateOutputs(now, pirReady || adultZone, alarmOn);
 
+  if (now - lastLog >= 500) {
+    lastLog = now;
 
-// zxb141: Function to read distance from the ultrasonic sensor
-float readDistance() {
-    
-    // zxb141: Send a 10-microsecond pulse to the trigger pin to initiate the ultrasonic measurement
-    digitalWrite(TRIG_PIN, HIGH); 
-    delayMicroseconds(10); 
-    digitalWrite(TRIG_PIN, LOW); 
+    const char* status = "GREEN";
 
-    // zxb141: Measure the duration of the echo pulse in microseconds
-    long duration = pulseIn(ECHO_PIN, HIGH);
-
-    // zxb141: Calculate the distance in centimeters using the speed of sound (343 m/s) and the duration of the echo pulse
-    float distance = duration * 0.0343 / 2; // zxb141: Calculate the distance in centimeters
-    
-    return distance;
-
-}
-
-
-
-// zxb141: Return the median of three values to reject glitches
-float middleOf(float a, float b, float c) {
-    
-    // zxb141: Check if 'a' is the middle value
-    if ((a >= b && a <= c) || (a <= b && a >= c)) {
-        return a;
-    } 
-    
-    // zxb141: Check if 'b' is the middle value
-    else if ((b >= a && b <= c) || (b <= a && b >= c)) {
-        return b;
-    }
-    
-    // zxb141: Check if 'c' is the middle value
-    else {
-        return c;
+    if (alarmOn) {
+      status = vibrationAlarm
+          ? "VIBRATION ALARM"
+          : "MOTION ALARM";
+    } else if (!pirReady && !adultZone) {
+      status = "WARMING UP";
     }
 
+    Serial.printf(
+        "t=%lus | PIR=%s | Adult=%s | Vibration=%s | Distance=",
+        static_cast<unsigned long>(now / 1000),
+        pirActive ? "ON" : "OFF",
+        adultZone ? "YES" : "NO",
+        contactSinceLog ? "YES" : "NO"
+    );
+
+    if (distanceCm < 0) {
+      Serial.print("no echo");
+    } else {
+      Serial.print(distanceCm, 1);
+      Serial.print("cm");
+    }
+
+    Serial.print(" | State=");
+    Serial.println(status);
+
+    contactSinceLog = false;
+  }
+
+  delay(1);
 }
